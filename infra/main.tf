@@ -5,6 +5,14 @@ data "aws_vpc" "main" {
   }
 }
 
+data "aws_eks_cluster" "main" {
+  name = var.cluster_name
+}
+
+data "aws_kms_key" "main" {
+  key_id = "alias/${var.cluster_name}-eks"
+}
+
 data "aws_subnets" "private" {
   filter {
     name   = "vpc-id"
@@ -22,12 +30,21 @@ data "aws_subnets" "private" {
   }
 }
 
-data "aws_eks_cluster" "main" {
-  name = var.cluster_name
-}
+data "aws_security_group" "eks_node" {
+  filter {
+    name   = "tag:Name"
+    values = ["${var.cluster_name}-node-sg"]
+  }
 
-data "aws_kms_key" "main" {
-  key_id = "alias/${var.cluster_name}-eks"
+  filter {
+    name   = "tag:kubernetes.io/cluster/${var.cluster_name}"
+    values = ["owned"]
+  }
+
+  filter {
+    name   = "vpc-id"
+    values = [data.aws_vpc.main.id]
+  }
 }
 
 # RDS PostgreSQL Module
@@ -38,8 +55,8 @@ module "rds_postgres" {
   vpc_id                          = data.aws_vpc.main.id
   vpc_cidr                        = data.aws_vpc.main.cidr_block
   subnet_ids                      = data.aws_subnets.private.ids
-  allowed_security_group_ids      = [data.aws_eks_cluster.main.node_security_group_id]
-  kms_key_id                      = data.aws_kms_key.main.id
+  allowed_security_group_ids      = [data.aws_security_group.eks_node.id]
+  kms_key_id                      = data.aws_kms_key.main.arn
   database_name                   = var.rds_database_name
   master_username                 = var.rds_master_username
   master_password                 = var.rds_master_password

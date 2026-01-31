@@ -6,7 +6,7 @@ Este projeto implementa o provisionamento de banco de dados **Amazon RDS Postgre
 
 ### Pré-requisitos
 
-- **Terraform**: v1.0+
+- **Terraform**: v1.14.2+
 - **AWS CLI**: v2.0+
 - **Conta AWS** com permissões adequadas
 - **Infraestrutura EKS** já provisionada pelo projeto `oficina-infra`
