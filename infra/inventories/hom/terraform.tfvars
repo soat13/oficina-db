@@ -9,7 +9,7 @@ rds_database_name = "oficina"
 
 # rds_master_password = "ChangeMe123!"
 
-rds_engine_version = "16.10"
+rds_engine_version = "17.6"
 
 rds_instance_class = "db.t3.micro"
 
