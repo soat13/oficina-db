@@ -42,7 +42,7 @@ variable "rds_master_password" {
 variable "rds_engine_version" {
   description = "PostgreSQL engine version"
   type        = string
-  default     = "16.1"
+  default     = "17.6"
 }
 
 variable "rds_instance_class" {

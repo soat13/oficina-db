@@ -15,7 +15,7 @@ Este projeto implementa o provisionamento de banco de dados **Amazon RDS Postgre
 
 #### 1. **RDS PostgreSQL Module** (`modules/rds-postgres`)
 Banco de dados gerenciado:
-- **Engine**: PostgreSQL 16.10
+- **Engine**: PostgreSQL 17.6
 - **Instance**: db.t3.micro (single-AZ para dev)
 - **Storage**: 20 GB gp3 com auto-scaling até 100 GB
 - **Backup**: 5 dias de retenção automática
