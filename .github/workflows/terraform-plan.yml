@@ -1,0 +1,89 @@
+name: Terraform Plan
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: false
+        type: string
+        default: dev
+    secrets:
+      AWS_ACCESS_KEY_ID:
+        required: true
+      AWS_SECRET_ACCESS_KEY:
+        required: true
+      AWS_SESSION_TOKEN:
+        required: true
+      TF_RDS_MASTER_PASSWORD:
+        required: true
+      TF_RDS_MASTER_USERNAME:
+        required: true
+    outputs:
+      tfplan_exitcode:
+        value: ${{ jobs.terraform-plan.outputs.tfplan_exitcode }}
+
+env:
+  AWS_REGION: us-east-1
+  TF_VERSION: 1.14.2
+
+jobs:
+  terraform-plan:
+    name: Terraform Plan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      tfplan_exitcode: ${{ steps.plan.outputs.exitcode }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@5e8dbf3c6d9deaf4193ca7a8fb23f2ac83bb6c85
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@ec61189d14ec14c8efccab744f656cffd0e33f37
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Terraform Format Check
+        id: fmt
+        run: terraform fmt -check -recursive
+        working-directory: ./infra
+
+      - name: Terraform Init
+        id: init
+        run: terraform init
+        working-directory: ./infra
+
+      - name: Terraform Validate
+        id: validate
+        run: terraform validate -no-color
+        working-directory: ./infra
+
+      - name: Terraform Plan
+        id: plan
+        env:
+          TF_VAR_rds_master_password: ${{ secrets.TF_RDS_MASTER_PASSWORD }}
+          TF_VAR_rds_master_username: ${{ secrets.TF_RDS_MASTER_USERNAME }}
+          ENVIRONMENT: ${{ inputs.environment }}
+        run: |
+          terraform plan \
+            -var-file=inventories/"$ENVIRONMENT"/terraform.tfvars \
+            -out=tfplan \
+            -no-color \
+            -detailed-exitcode || echo "exitcode=$?" >> $GITHUB_OUTPUT
+        working-directory: ./infra
+
+      - name: Upload Terraform Plan
+        uses: actions/upload-artifact@v6
+        with:
+          name: tfplan-${{ inputs.environment }}
+          path: infra/tfplan
+          retention-days: 5
