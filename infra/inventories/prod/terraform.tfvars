@@ -29,6 +29,48 @@ rds_deletion_protection = false
 
 rds_enabled_cloudwatch_logs_exports = ["postgresql"]
 
+# DynamoDB Tables
+dynamodb_tables = {
+  "users" = {
+    hash_key = "id"
+    attributes = [
+      { name = "id", type = "S" },
+      { name = "document", type = "S" },
+      { name = "email", type = "S" }
+    ]
+    global_secondary_indexes = [
+      {
+        name            = "document-index"
+        hash_key        = "document"
+        projection_type = "ALL"
+      },
+      {
+        name            = "email-index"
+        hash_key        = "email"
+        projection_type = "ALL"
+      }
+    ]
+  }
+  "payments" = {
+    hash_key  = "pk"
+    range_key = "sk"
+    attributes = [
+      { name = "pk", type = "S" },
+      { name = "sk", type = "S" },
+      { name = "gsi1pk", type = "S" },
+      { name = "gsi1sk", type = "S" }
+    ]
+    global_secondary_indexes = [
+      {
+        name            = "gsi1"
+        hash_key        = "gsi1pk"
+        range_key       = "gsi1sk"
+        projection_type = "ALL"
+      }
+    ]
+  }
+}
+
 tags = {
   Environment = "prod"
   ManagedBy   = "terraform"

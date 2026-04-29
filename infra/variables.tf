@@ -105,6 +105,12 @@ variable "rds_enabled_cloudwatch_logs_exports" {
   default     = ["postgresql"]
 }
 
+variable "dynamodb_tables" {
+  description = "Map of DynamoDB tables to create"
+  type        = any
+  default     = {}
+}
+
 variable "tags" {
   description = "A map of tags to assign to the resource"
   type        = map(string)

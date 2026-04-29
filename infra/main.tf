@@ -47,6 +47,21 @@ data "aws_security_group" "eks_node" {
   }
 }
 
+# DynamoDB Tables
+module "dynamodb_tables" {
+  source   = "./modules/dynamodb"
+  for_each = var.dynamodb_tables
+
+  name                     = each.key
+  billing_mode             = lookup(each.value, "billing_mode", "PAY_PER_REQUEST")
+  hash_key                 = lookup(each.value, "hash_key", "id")
+  range_key                = lookup(each.value, "range_key", null)
+  attributes               = lookup(each.value, "attributes", [{ name = "id", type = "S" }])
+  global_secondary_indexes = lookup(each.value, "global_secondary_indexes", [])
+
+  tags = var.tags
+}
+
 # RDS PostgreSQL Module
 module "rds_postgres" {
   source = "./modules/rds-postgres"
